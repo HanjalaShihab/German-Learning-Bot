@@ -1,49 +1,69 @@
-import streamlit as st
 from deep_translator import GoogleTranslator
-import random
+from telegram import Update
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
+import logging
+import streamlit as st
+import threading
 
-# Set up Streamlit page
-st.set_page_config(page_title="German Language Chatbot", page_icon="🇩🇪", layout="wide")
+# Logging setup for debugging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Initialize session state
-if 'chat_history' not in st.session_state:
-    st.session_state.chat_history = []
-
-# Function to translate English to German
+# Translation function
 def translate_to_german(english_word):
-    return GoogleTranslator(source='en', target='de').translate(english_word)
+    try:
+        # Using deep_translator to translate
+        translation = GoogleTranslator(source='en', target='de').translate(english_word)
+        return translation if translation else "Sorry, I couldn't translate that at the moment."
+    except Exception as e:
+        logger.error(f"Translation error: {e}")
+        return "Sorry, I couldn't translate that at the moment."
 
-# Function for chatbot personality
-def bot_personality():
-    responses = [
-        ""
-    ]
-    return random.choice(responses)
+# Function to handle the message and return a translation
+async def telegram_message_handler(update: Update, context):
+    user_input = update.message.text
+    bot_response = translate_to_german(user_input)
+    await update.message.reply_text(f"German for '{user_input}' is: {bot_response}")
 
-# Function to handle user input
-def handle_user_input(user_input):
-    if user_input:
-        translation = translate_to_german(user_input)
-        bot_response = f"{bot_personality()} German for '{user_input}' is: {translation}"
-        return bot_response
-    return "Please enter a word to translate."
+# Function for the /start command
+async def start(update: Update, context):
+    await update.message.reply_text("Hello! Send me an English word, and I'll translate it into German!")
 
-# UI Elements
-st.title("💬 German Language Chatbot")
-st.write("Ask me about English words, and I'll give you the German translation!")
+# Telegram bot setup
+def run_telegram_bot():
+    # Replace with your bot token
+    TOKEN = "7984631453:AAEimDRv2G4StdZPum86h6BbnfJYd31s92c"
 
-with st.form("chat_form"):
-    user_input = st.text_input("Enter an English word:", "")
-    submitted = st.form_submit_button("Send")
+    # Setting up the application
+    application = Application.builder().token(TOKEN).build()
 
-if submitted and user_input:
-    bot_response = handle_user_input(user_input)
+    # Adding handlers
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, telegram_message_handler))
 
-    # Save user input and bot response
-    st.session_state.chat_history.append({"role": "User", "text": user_input})
-    st.session_state.chat_history.append({"role": "Bot", "text": bot_response})
+    # Start the bot
+    application.run_polling()
 
-# Display chat messages
-for message in st.session_state.chat_history:
-    with st.chat_message("user" if message["role"] == "User" else "assistant"):
-        st.write(message["text"])
+# Function to run the Telegram bot in a separate thread
+def start_bot_thread():
+    bot_thread = threading.Thread(target=run_telegram_bot)
+    bot_thread.start()
+
+# Start Streamlit app
+def run_streamlit():
+    # Streamlit user interface
+    st.title("German Translation Bot")
+    st.write("Welcome to the German Translation Bot!")
+    
+    input_text = st.text_input("Enter an English word:")
+    
+    if input_text:
+        translation = translate_to_german(input_text)
+        st.write(f"The German translation for '{input_text}' is: {translation}")
+        
+    # Start the Telegram bot in a background thread
+    start_bot_thread()
+
+if __name__ == '__main__':
+    run_streamlit()
