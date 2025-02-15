@@ -3,7 +3,8 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 import logging
 import streamlit as st
-import threading
+import multiprocessing
+import asyncio
 
 # Logging setup for debugging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -31,7 +32,7 @@ async def start(update: Update, context):
     await update.message.reply_text("Hello! Send me an English word, and I'll translate it into German!")
 
 # Telegram bot setup
-def run_telegram_bot():
+async def run_telegram_bot():
     # Replace with your bot token
     TOKEN = "7984631453:AAEimDRv2G4StdZPum86h6BbnfJYd31s92c"
 
@@ -43,12 +44,11 @@ def run_telegram_bot():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, telegram_message_handler))
 
     # Start the bot
-    application.run_polling()
+    await application.run_polling()
 
-# Function to run the Telegram bot in a separate thread
-def start_bot_thread():
-    bot_thread = threading.Thread(target=run_telegram_bot)
-    bot_thread.start()
+# Function to run the Telegram bot in a separate process using multiprocessing
+def start_bot_process():
+    asyncio.run(run_telegram_bot())
 
 # Start Streamlit app
 def run_streamlit():
@@ -62,8 +62,9 @@ def run_streamlit():
         translation = translate_to_german(input_text)
         st.write(f"The German translation for '{input_text}' is: {translation}")
         
-    # Start the Telegram bot in a background thread
-    start_bot_thread()
+    # Start the Telegram bot in a separate process
+    bot_process = multiprocessing.Process(target=start_bot_process)
+    bot_process.start()
 
 if __name__ == '__main__':
     run_streamlit()
