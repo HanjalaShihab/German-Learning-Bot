@@ -31,7 +31,7 @@ async def start(update: Update, context):
 
 # Telegram Bot Function
 async def run_telegram_bot():
-    TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Use environment variable
+    TOKEN = os.getenv("7984631453:AAEimDRv2G4StdZPum86h6BbnfJYd31s92c")  # Use environment variable
 
     if not TOKEN:
         logger.error("Bot token is missing! Set TELEGRAM_BOT_TOKEN in environment variables.")
