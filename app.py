@@ -1,8 +1,10 @@
+import os
+import time
+import logging
+import asyncio
 from deep_translator import GoogleTranslator
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
-import logging
-import asyncio
 
 # Logging setup
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -29,17 +31,20 @@ async def start(update: Update, context):
 
 # Telegram Bot Function
 async def run_telegram_bot():
-    TOKEN = "YOUR_BOT_TOKEN"
+    TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Use environment variable
+
+    if not TOKEN:
+        logger.error("Bot token is missing! Set TELEGRAM_BOT_TOKEN in environment variables.")
+        return
 
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, telegram_message_handler))
 
+    logger.info("Starting Telegram bot...")
     await application.run_polling()
 
-def start_bot():
-    loop = asyncio.get_event_loop()
-    loop.create_task(run_telegram_bot())
-
 if __name__ == '__main__':
-    start_bot()
+    asyncio.run(run_telegram_bot())
+    while True:
+        time.sleep(10)  # Keeps the instance running
