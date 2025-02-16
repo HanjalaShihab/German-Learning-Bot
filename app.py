@@ -2,7 +2,6 @@ from deep_translator import GoogleTranslator
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 import logging
-import streamlit as st
 import asyncio
 
 # Logging setup
@@ -30,7 +29,7 @@ async def start(update: Update, context):
 
 # Telegram Bot Function
 async def run_telegram_bot():
-    TOKEN = "7984631453:AAEimDRv2G4StdZPum86h6BbnfJYd31s92c"
+    TOKEN = "YOUR_BOT_TOKEN"
 
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
@@ -43,21 +42,5 @@ def start_bot():
     loop = asyncio.get_event_loop()
     loop.create_task(run_telegram_bot())
 
-# Streamlit UI
-def run_streamlit():
-    st.title("German Translation Bot")
-    st.write("Welcome to the German Translation Bot!")
-
-    input_text = st.text_input("Enter an English word:")
-    
-    if input_text:
-        translation = translate_to_german(input_text)
-        st.write(f"The German translation for '{input_text}' is: {translation}")
-
-    # Start the Telegram bot (only if not running)
-    if 'bot_started' not in st.session_state:
-        st.session_state.bot_started = True
-        asyncio.create_task(run_telegram_bot())  # Run bot inside Streamlit's event loop
-
 if __name__ == '__main__':
-    run_streamlit()
+    start_bot()
