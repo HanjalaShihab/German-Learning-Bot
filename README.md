@@ -1,4 +1,5 @@
 This is a Telegram bot which was particularly created for Translating English words/sentences to German.
+
 Learn German!
 
 Scan the QR to use the bot.
