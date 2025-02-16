@@ -37,7 +37,6 @@ async def run_telegram_bot():
 
     await application.run_polling()
 
-# Start the bot without `asyncio.run()`
 def start_bot():
     loop = asyncio.get_event_loop()
     loop.create_task(run_telegram_bot())
